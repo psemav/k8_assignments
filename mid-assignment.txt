@@ -1,0 +1,15 @@
+ReplicaSet
+1. "kind" is different, "selector" is a little bit different. RC for some reason defines port but RS does not.
+2. ok.
+3. kubectl get rs; kubectl get po;
+4. Applied services NodePort and ClusterIP. Both services are bale to pick up the web-service within the pods.
+5. After changing label of a pod, the pod is no longer treated as a part of the RS. The RS starts new pod so the desired number of pods remain the same.
+
+CronJob
+1. ok.
+2. done.
+3. CJ applied.
+4. kubectl get cj
+5. When the scheduled time comes, new pod is created. When the job is done, the pod remains in Completed status.
+6. kubectl patch cj batch-job-every-fifteen-minutes -p "{\"spec\" : {\"suspend\" : true }}"
+7. Job is a one-time action, cronJob runs repeatedly (indefinitely).
