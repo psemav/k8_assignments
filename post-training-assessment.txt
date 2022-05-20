@@ -1,0 +1,81 @@
+Replica Set
+===========
+
+Daemon set would be used when all (configured) nodes must run the same application (pod).
+Maybe some kind of node monitoring (collecting logs).
+
+
+Deployment
+==========
+
+- add replica (to be super safe, add also spec.minReadySeconds):
+kubectl scale deploy kubia --replicas=2
+
+- rollout new version:
+kubectl set image deploy kubia nodejs=luksa/kubia:v3
+
+- remove replica:
+kubectl scale deploy kubia --replicas=1
+
+
+Service
+=======
+
+I assume my Internet conenction is working so I only need to investigate k8s stuff.
+
+1. check that pods are running:
+   kubectl get po
+2. check that service is there:
+   kubectl get svc
+3. check that application is running in a pod:
+   kubectl get po -o wide
+   curl <pod IP:port>
+4. try that service is running at least on CLUSTER-IP:
+   curl <cluster-ip:port>
+5. check that end points are there:
+   kubectl describe svc <name>
+   kubectl get ep
+6. maybe check iptables:
+   iptables-save | grep <something>
+   Start by grep <CLUSTER-IP>, from there check relevant KUBE-SVC-* and KUBE-SEP-* entries.
+7. I'm running out of ideas. By now it must be clear that I made somewhere a mistake - maybe
+   endpoint port mismatch with service's target port. Or I simply putting wrong IP and/or
+   port into a browser.
+
+
+VOTING APP ASSIGNMENT
+=====================
+
+1. - 7.: done;
+8., 9.: kubectl delete po <name>
+  - voting pod delete:
+    * new pod is beeing created immediately;
+    * voting page is not responding until new pod is started;
+    * if new pod starts fast enough, the vote is counted even when user clicked the button
+      while original pod was already terminating;
+  - worker pod delete:
+    * new pod is beeing created immediately;
+    * voting page works normally;
+    * results are updated once new worker pod is started (it looks like the pod is in fact
+      functional a few moments before k8s shows it as Running, because results were updated
+      when k8s were still showing the pod as ContainerCreating);
+10., 11., 12.:
+  - db pod delete:
+    * new pod is beeing created immediately;
+    * worker node is beeing restarted a few times;
+    * result page must be forced reload and is not able to show number of votes
+      (it should show "no votes yet", because votes data were wiped out together with db pod);
+    * result page is not working even after new db pod is started;
+    * checking logs (kubectl logs <pod name>), result pod is not able to connect
+      to database (db pod);
+    * result page starts working only after result pod restart (i.e. after delete) - no
+      need to the page reload;
+
+
+Jargons
+=======
+
+- docker, image, dockerfile, image registry;
+- kubernetes, cluster, microservice, replicaset, deployment, cron job, pod, namespace, label,
+  controller, service, persistent volume (claim), end point, cluster IP, scaling, replicas,
+  CNI, 
